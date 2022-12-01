@@ -17,12 +17,14 @@ public class FirstPersonController : MonoBehaviour
     [SerializeField] private bool CanUseHeadBob = true;
     [SerializeField] private bool WillSlideOnSlopes = true;
     [SerializeField] private bool CanZoom = true;
+    [SerializeField] private bool CanInteract = true;
 
     [Header("Controls")]
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
     [SerializeField] private KeyCode jumpKey = KeyCode.Space;
     [SerializeField] private KeyCode crouchKey = KeyCode.LeftControl;
     [SerializeField] private KeyCode zoomKey = KeyCode.Mouse1;
+    [SerializeField] private KeyCode interactKey = KeyCode.E;
 
 
     [Header("Movement Parameters")]
@@ -67,7 +69,7 @@ public class FirstPersonController : MonoBehaviour
     private Coroutine zoomRoutine;
 
 
-    // Sliding Parameters
+    // SLIDING PARAMETERS
     private Vector3 hitPointNormal;
     private bool IsSliding
     {
@@ -84,6 +86,12 @@ public class FirstPersonController : MonoBehaviour
             }
         }
     }
+
+    [Header("Interaction")]
+    [SerializeField] private Vector3 interactionRayPoint = default;
+    [SerializeField] private float interactionDistance = default;
+    [SerializeField] private LayerMask interactionLayer = default;
+    private Interactable currentInteractable;
 
     private Camera playerCamera;
     private CharacterController characterController;
@@ -125,6 +133,12 @@ public class FirstPersonController : MonoBehaviour
 
             if (CanZoom)
                 HandleZoom();
+
+            if (CanInteract)
+            {
+                HandleInteractCheck();
+                HandleInteractInput();
+            }
 
             ApplyFinalMovements();
         }
@@ -199,6 +213,33 @@ public class FirstPersonController : MonoBehaviour
             }
 
             zoomRoutine = StartCoroutine(ToggleZoom(false));
+        }
+    }
+
+    private void HandleInteractCheck()
+    {
+        if(Physics.Raycast(playerCamera.ViewportPointToRay(interactionRayPoint), out RaycastHit hit, interactionDistance))
+        {
+            if(hit.collider.gameObject.layer == 7 && (currentInteractable == null || hit.collider.gameObject.GetInstanceID() != currentInteractable.GetInstanceID()))
+            {
+                hit.collider.TryGetComponent(out currentInteractable);
+
+                if (currentInteractable)
+                    currentInteractable.OnFocus();
+            }
+        }
+        else if(currentInteractable)
+        {
+            currentInteractable.OnLoseFocus();
+            currentInteractable = null;
+        }
+    }
+
+    private void HandleInteractInput()
+    {
+        if(Input.GetKeyDown(interactKey) && currentInteractable != null && Physics.Raycast(playerCamera.ViewportPointToRay(interactionRayPoint), out RaycastHit hit, interactionDistance, interactionLayer))
+        {
+            currentInteractable.OnInteract();
         }
     }
 
