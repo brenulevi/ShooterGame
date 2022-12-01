@@ -3,7 +3,11 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Footsteps/Wood
+  - Footsteps/Metal
+  - Footsteps/Grass
+  - Footsteps/Concrete
   layers:
   - Default
   - TransparentFX
@@ -12,7 +16,7 @@ TagManager:
   - Water
   - UI
   - Gun
-  - 
+  - Interactable
   - 
   - 
   - 
