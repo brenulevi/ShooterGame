@@ -8,12 +8,13 @@ public class FirstPersonController : MonoBehaviour
     public bool CanMove { get; private set; } = true;
     private bool IsSprinting => canSprint && Input.GetKey(sprintKey);
     private bool ShouldJump => Input.GetKeyDown(jumpKey) && characterController.isGrounded;
-    private bool ShouldCrouch => InputGetKeyDown(crouchKey) && !duringCrouchAnimation && characterController.isGrounded;
+    private bool ShouldCrouch => Input.GetKeyDown(crouchKey) && !duringCrouchAnimation && characterController.isGrounded;
 
     [Header("Functional Options")]
     [SerializeField] private bool canSprint = true;
     [SerializeField] private bool canJump = true;
     [SerializeField] private bool canCrouch = true;
+    [SerializeField] private bool canUseHeadbob = true;
 
     [Header("Controls")]
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
@@ -45,6 +46,16 @@ public class FirstPersonController : MonoBehaviour
     private bool isCrouching;
     private bool duringCrouchAnimation;
 
+    [Header("Headbob Parameters")]
+    [SerializeField] private float walkBobSpeed = 14f;
+    [SerializeField] private float walkBobAmount = .05f;
+    [SerializeField] private float sprintBobSpeed = 18f;
+    [SerializeField] private float sprintBobAmount = .1f;
+    [SerializeField] private float crouchBobSpeed = 8f;
+    [SerializeField] private float crouchBobAmount = .025f;
+    private float defaultYPos = 0;
+    private float timer;
+
     private Camera playerCamera;
     private CharacterController characterController;
 
@@ -58,6 +69,8 @@ public class FirstPersonController : MonoBehaviour
         // Player Properties
         playerCamera = GetComponentInChildren<Camera>();
         characterController = GetComponent<CharacterController>();
+
+        defaultYPos = playerCamera.transform.localPosition.y;
         
         // Cursor
         Cursor.lockState = CursorLockMode.Locked;
@@ -77,13 +90,17 @@ public class FirstPersonController : MonoBehaviour
             if(canCrouch)
                 HandleCrouch();
 
+            if (canUseHeadbob)
+                HandleHeadbob();
+
             ApplyFinalMovements();
         }
     }
 
     private void HandleMovementInput()
     {
-        currentInput = new Vector2((isCrouching ? crouchSpeed : IsSprinting ? sprintSpeed : walkSpeed) * Input.GetAxis("Vertical"), (isCrouching ? crouchSpeed : IsSprinting ? sprintSpeed : walkSpeed) * Input.GetAxis("Horizontal"));
+        currentInput = new Vector2(Input.GetAxis("Vertical"), Input.GetAxis("Horizontal")).normalized;
+        currentInput *= (isCrouching ? crouchSpeed : IsSprinting ? sprintSpeed : walkSpeed);
 
         float moveDirectionY = moveDirection.y;
         moveDirection = (transform.TransformDirection(Vector3.forward) * currentInput.x) + (transform.TransformDirection(Vector3.right) * currentInput.y);
@@ -108,6 +125,23 @@ public class FirstPersonController : MonoBehaviour
     {
         if(ShouldCrouch)
             StartCoroutine(CrouchStand());
+    }
+
+    private void HandleHeadbob()
+    {
+        if (!characterController.isGrounded)
+            return;
+
+        if(Mathf.Abs(moveDirection.x) > .1f || Mathf.Abs(moveDirection.z) > .1f)
+        {
+            timer += Time.deltaTime * (isCrouching ? crouchBobSpeed : IsSprinting ? sprintBobSpeed : walkBobSpeed);
+            playerCamera.transform.localPosition = new Vector3(
+                playerCamera.transform.localPosition.x,
+                defaultYPos + Mathf.Sin(timer) * (isCrouching ? crouchBobAmount : IsSprinting ? sprintBobAmount : walkBobAmount),
+                playerCamera.transform.localPosition.z
+            );
+        }
+
     }
 
     private void ApplyFinalMovements()
