@@ -21,6 +21,7 @@ public class FirstPersonController : MonoBehaviour
     [SerializeField] private bool CanInteract = true;
     [SerializeField] private bool UseFootsteps = true;
     [SerializeField] private bool UseStamina = true;
+    [SerializeField] private bool CanShoot = true;
 
     [Header("Controls")]
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
@@ -28,7 +29,8 @@ public class FirstPersonController : MonoBehaviour
     [SerializeField] private KeyCode crouchKey = KeyCode.LeftControl;
     [SerializeField] private KeyCode zoomKey = KeyCode.Mouse1;
     [SerializeField] private KeyCode interactKey = KeyCode.E;
-
+    [SerializeField] private KeyCode fireKey = KeyCode.Mouse0;
+    [SerializeField] private KeyCode reloadKey = KeyCode.R;
 
     [Header("Movement Parameters")]
     [SerializeField] private float walkSpeed = 3.0f;
@@ -62,7 +64,6 @@ public class FirstPersonController : MonoBehaviour
     private float currentStamina;
     private Coroutine regeneratingStamina;
     public static Action<float> OnStaminaChange;
-
 
     [Header("Jumping Parameters")]
     [SerializeField] private float jumpForce = 8.0f;
@@ -104,6 +105,23 @@ public class FirstPersonController : MonoBehaviour
     [SerializeField] private AudioClip[] grassClips = default;
     private float footstepTimer = 0;
     private float GetCurrentOffset => IsCrouching ? baseStepSpeed * crouchStepMultiplier : IsSprinting ? baseStepSpeed * sprintStepMultiplier : baseStepSpeed;
+
+    [Header("Shooting Parameters")]
+    [SerializeField] private float dmgHeadPreferDistance = 55f;
+    [SerializeField] private float dmgHeadLongDistance = 35f;
+    [SerializeField] private float dmgBodyPreferDistance = 30f;
+    [SerializeField] private float dmgBodyLongDistance = 24f;
+    [SerializeField] private float fireRate = 6.75f;
+    [SerializeField] private int magazineSize = 11;
+    [SerializeField] private float preferDistance = 25f;
+    [SerializeField] private float maxShootDistance = 1000f;
+    [SerializeField] private AudioSource gunAudioSource = default;
+    [SerializeField] private AudioClip noBulletsClip = default;
+    [SerializeField] private AudioClip[] fireClip = default;
+    [SerializeField] private AudioClip reloadClip = default;
+    [SerializeField] private AudioClip[] pickUpClip = default;
+    private int currentBulletsOnMaganize;
+    private int totalBullets = 10;
 
     // SLIDING PARAMETERS
     private Vector3 hitPointNormal;
@@ -158,6 +176,10 @@ public class FirstPersonController : MonoBehaviour
         currentHealth = maxHealth;
         currentStamina = maxStamina;
         
+        // Set ammo
+        currentBulletsOnMaganize = magazineSize;
+        totalBullets -= currentBulletsOnMaganize;
+        
         // Cursor
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -194,6 +216,12 @@ public class FirstPersonController : MonoBehaviour
             if (UseStamina)
                 HandleStamina();
 
+            if (CanShoot)
+            {
+                HandleShoot();
+                HandleReload();
+            }
+
             ApplyFinalMovements();
         }
     }
@@ -214,6 +242,39 @@ public class FirstPersonController : MonoBehaviour
         rotationX = Mathf.Clamp(rotationX, -upperLookLimit, lowerLookLimit);
         playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
         transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeedX, 0);
+    }
+
+    private void HandleShoot()
+    {
+        if(Input.GetKeyDown(fireKey))
+        {
+            if (currentBulletsOnMaganize > 0)
+                RaycastShoot();
+            else
+            {
+                gunAudioSource.PlayOneShot(noBulletsClip);
+                HandleReload();
+            }
+
+        }
+    }
+
+    private void RaycastShoot()
+    {
+        if(Physics.Raycast(playerCamera.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, maxShootDistance))
+        {
+            Debug.Log(hit.transform.name);
+            currentBulletsOnMaganize--;
+        }
+    }
+
+    private void HandleReload()
+    {
+        if((Input.GetKeyDown(reloadKey) || currentBulletsOnMaganize <= 0) && totalBullets > 0)
+        {
+            totalBullets -= magazineSize - currentBulletsOnMaganize;
+            currentBulletsOnMaganize = totalBullets >= magazineSize ? magazineSize : totalBullets;
+        }
     }
 
     private void HandleJump()

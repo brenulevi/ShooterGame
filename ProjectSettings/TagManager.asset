@@ -8,6 +8,8 @@ TagManager:
   - Footsteps/Metal
   - Footsteps/Grass
   - Footsteps/Concrete
+  - Hit/Body
+  - Hit/Head
   layers:
   - Default
   - TransparentFX
@@ -17,7 +19,7 @@ TagManager:
   - UI
   - Gun
   - Interactable
-  - 
+  - Enemy
   - 
   - 
   - 
