@@ -21,7 +21,6 @@ public class FirstPersonController : MonoBehaviour
   [SerializeField] private bool CanInteract = true;
   [SerializeField] private bool UseFootsteps = true;
   [SerializeField] private bool UseStamina = true;
-  [SerializeField] private bool CanShoot = true;
 
   [Header("Controls")]
   [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
@@ -29,8 +28,6 @@ public class FirstPersonController : MonoBehaviour
   [SerializeField] private KeyCode crouchKey = KeyCode.LeftControl;
   [SerializeField] private KeyCode zoomKey = KeyCode.Mouse1;
   [SerializeField] private KeyCode interactKey = KeyCode.E;
-  [SerializeField] private KeyCode fireKey = KeyCode.Mouse0;
-  [SerializeField] private KeyCode reloadKey = KeyCode.R;
 
   [Header("Movement Parameters")]
   [SerializeField] private float walkSpeed = 3.0f;
@@ -43,6 +40,8 @@ public class FirstPersonController : MonoBehaviour
   [SerializeField, Range(1, 10)] private float lookSpeedY = 2.0f;
   [SerializeField, Range(1, 180)] private float upperLookLimit = 80.0f;
   [SerializeField, Range(1, 180)] private float lowerLookLimit = 80.0f;
+
+  [HideInInspector] public Vector2 currentRotation = Vector2.zero;
 
   [Header("Health Parameters")]
   [SerializeField] private float maxHealth = 100f;
@@ -93,6 +92,7 @@ public class FirstPersonController : MonoBehaviour
   [SerializeField] private float zoomFOV = 30f;
   private float defaultFOV;
   private Coroutine zoomRoutine;
+  public bool isZooming = false;
 
   [Header("Footstep Parameters")]
   [SerializeField] private float baseStepSpeed = .5f;
@@ -105,23 +105,6 @@ public class FirstPersonController : MonoBehaviour
   [SerializeField] private AudioClip[] grassClips = default;
   private float footstepTimer = 0;
   private float GetCurrentOffset => IsCrouching ? baseStepSpeed * crouchStepMultiplier : IsSprinting ? baseStepSpeed * sprintStepMultiplier : baseStepSpeed;
-
-  [Header("Shooting Parameters")]
-  [SerializeField] private float dmgHeadPreferDistance = 55f;
-  [SerializeField] private float dmgHeadLongDistance = 35f;
-  [SerializeField] private float dmgBodyPreferDistance = 30f;
-  [SerializeField] private float dmgBodyLongDistance = 24f;
-  [SerializeField] private float fireRate = 6.75f;
-  [SerializeField] private int magazineSize = 11;
-  [SerializeField] private float preferDistance = 25f;
-  [SerializeField] private float maxShootDistance = 1000f;
-  [SerializeField] private AudioSource gunAudioSource = default;
-  [SerializeField] private AudioClip noBulletsClip = default;
-  [SerializeField] private AudioClip[] fireClip = default;
-  [SerializeField] private AudioClip reloadClip = default;
-  [SerializeField] private AudioClip[] pickUpClip = default;
-  private int currentBulletsOnMaganize;
-  private int totalBullets = 55;
 
   // SLIDING PARAMETERS
   private Vector3 hitPointNormal;
@@ -147,7 +130,7 @@ public class FirstPersonController : MonoBehaviour
   [SerializeField] private LayerMask interactionLayer = default;
   private Interactable currentInteractable;
 
-  private Camera playerCamera;
+  [HideInInspector] public Camera playerCamera;
   private CharacterController characterController;
 
   private Vector3 moveDirection;
@@ -175,10 +158,6 @@ public class FirstPersonController : MonoBehaviour
     defaultFOV = playerCamera.fieldOfView;
     currentHealth = maxHealth;
     currentStamina = maxStamina;
-
-    // Set ammo
-    currentBulletsOnMaganize = magazineSize;
-    totalBullets -= currentBulletsOnMaganize;
 
     // Cursor
     Cursor.lockState = CursorLockMode.Locked;
@@ -216,12 +195,6 @@ public class FirstPersonController : MonoBehaviour
       if (UseStamina)
         HandleStamina();
 
-      if (CanShoot)
-      {
-        HandleShoot();
-        HandleReload();
-      }
-
       ApplyFinalMovements();
     }
   }
@@ -238,77 +211,20 @@ public class FirstPersonController : MonoBehaviour
 
   private void HandleMouseLook()
   {
-    rotationX -= Input.GetAxis("Mouse Y") * lookSpeedY;
-    rotationX = Mathf.Clamp(rotationX, -upperLookLimit, lowerLookLimit);
-    playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
-    transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeedX, 0);
-  }
+    Vector2 mouseAxis = new Vector2(Input.GetAxis("Mouse X") * lookSpeedX, Input.GetAxis("Mouse Y") * lookSpeedY);
 
-  private void HandleShoot()
-  {
-    if (Input.GetKeyDown(fireKey))
-    {
-      if (currentBulletsOnMaganize > 0)
-      {
-        RaycastShoot();
-        currentBulletsOnMaganize--;
-      }
-      else
-      {
-        gunAudioSource.PlayOneShot(noBulletsClip);
-        HandleReload();
-      }
+    currentRotation += mouseAxis;
 
-    }
-  }
+    currentRotation.y = Mathf.Clamp(currentRotation.y, -upperLookLimit, lowerLookLimit);
 
-  private void RaycastShoot()
-  {
-    if (Physics.Raycast(playerCamera.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, maxShootDistance))
-    {
-      if (hit.transform.gameObject.layer == 8)
-        hit.collider.GetComponentInParent<Enemy>().ApplyDamage(GetDamage(hit.collider, hit.distance));
-    }
-  }
+    transform.localRotation = Quaternion.AngleAxis(currentRotation.x , Vector3.up);
+    playerCamera.transform.localRotation = Quaternion.AngleAxis(-currentRotation.y, Vector3.right);
 
-  private float GetDamage(Collider enemyCollider, float distance)
-  {
-    if (enemyCollider.CompareTag("Hit/Head"))
-    {
-      if (distance <= preferDistance)
-        return dmgHeadPreferDistance;
-      else
-        return dmgHeadLongDistance;
-    }
-    else
-    {
-      if (distance <= preferDistance)
-        return dmgBodyPreferDistance;
-      else
-        return dmgBodyLongDistance;
-    }
-  }
-
-  private void HandleReload()
-  {
-    if (((Input.GetKeyDown(reloadKey) && currentBulletsOnMaganize != magazineSize) || currentBulletsOnMaganize <= 0) && totalBullets > 0)
-    {
-      int ammoNeeded = magazineSize - currentBulletsOnMaganize;
-      if (ammoNeeded <= totalBullets)
-      {
-        currentBulletsOnMaganize += ammoNeeded;
-        totalBullets -= ammoNeeded;
-      }
-      else if (totalBullets == 0)
-      {
-        //No bullets
-      }
-      else
-      {
-        currentBulletsOnMaganize += totalBullets;
-        totalBullets = 0;
-      }
-    }
+    // Old camera movement logic (changed because recoil)
+    //rotationX -= Input.GetAxis("Mouse Y") * lookSpeedY;
+    //rotationX = Mathf.Clamp(rotationX, -upperLookLimit, lowerLookLimit);
+    //playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
+    //transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeedX, 0);
   }
 
   private void HandleJump()
@@ -350,6 +266,7 @@ public class FirstPersonController : MonoBehaviour
         zoomRoutine = null;
       }
 
+      isZooming = true;
       zoomRoutine = StartCoroutine(ToggleZoom(true));
     }
 
@@ -361,6 +278,7 @@ public class FirstPersonController : MonoBehaviour
         zoomRoutine = null;
       }
 
+      isZooming = false;
       zoomRoutine = StartCoroutine(ToggleZoom(false));
     }
   }
