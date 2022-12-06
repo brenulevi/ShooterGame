@@ -5,6 +5,12 @@ TagManager:
   serializedVersion: 2
   tags:
   - Shootable
+  - Footsteps/Concrete
+  - Footsteps/Wood
+  - Footsteps/Grass
+  - Footsteps/Metal
+  - Hit/Body
+  - Hit/Head
   layers:
   - Default
   - TransparentFX
@@ -13,8 +19,8 @@ TagManager:
   - Water
   - UI
   - 
+  - Interactable
   - Gun
-  - Lighting
   - Ground
   - Postprocessing
   - 

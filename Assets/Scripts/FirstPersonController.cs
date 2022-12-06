@@ -17,7 +17,7 @@ public class FirstPersonController : MonoBehaviour
   [SerializeField] private bool CanCrouch = true;
   [SerializeField] private bool CanUseHeadBob = true;
   [SerializeField] private bool WillSlideOnSlopes = true;
-  [SerializeField] private bool CanZoom = true;
+  [SerializeField] public bool CanZoom = true;
   [SerializeField] private bool CanInteract = true;
   [SerializeField] private bool UseFootsteps = true;
   [SerializeField] private bool UseStamina = true;
@@ -258,7 +258,7 @@ public class FirstPersonController : MonoBehaviour
 
   private void HandleZoom()
   {
-    if (Input.GetKeyDown(zoomKey))
+    if (Input.GetKeyDown(zoomKey) && !isZooming)
     {
       if (zoomRoutine != null)
       {
@@ -270,7 +270,7 @@ public class FirstPersonController : MonoBehaviour
       zoomRoutine = StartCoroutine(ToggleZoom(true));
     }
 
-    if (Input.GetKeyUp(zoomKey))
+    if (Input.GetKeyUp(zoomKey) && isZooming)
     {
       if (zoomRoutine != null)
       {
