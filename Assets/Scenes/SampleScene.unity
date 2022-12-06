@@ -16216,6 +16216,9 @@ MonoBehaviour:
   fireRecoilForward: 0.1
   randomizeRecoil: 1
   randomReacoilConstraints: {x: -1, y: 1}
+  bulletHoleWallStep: 0.01
+  bulletHole: {fileID: 6039295039317875019, guid: cdeab4b993d211a49a4ac69226a4a5a6,
+    type: 3}
 --- !u!82 &4356074552547847755
 AudioSource:
   m_ObjectHideFlags: 0

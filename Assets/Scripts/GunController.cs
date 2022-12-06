@@ -21,7 +21,6 @@ public class GunController : MonoBehaviour
   [SerializeField] private AudioSource gunAudioSource = default;
   [SerializeField] private AudioClip shootAudioClip = default;
   [SerializeField] private AudioClip noAmmoAudioClip = default;
-
   private int currentAmmoInClip;
   private int ammoInReserve;
 
@@ -49,9 +48,12 @@ public class GunController : MonoBehaviour
   //[SerializeField] private Vector2 walkAimRecoilConstraints = new Vector2(1.25f, 1);
   //[SerializeField] private Vector2 sprintAimRecoilConstraints = new Vector2(3.1f, 3.3f);
   //[SerializeField] private Vector2 crouchAimRecoilConstraints = new Vector2(.25f, .25f);
-
   public static Action<float, float> OnFire;
   public static Action<float, float> OnReload;
+
+  [Header("Bullet Holes")]
+  [SerializeField] private float bulletHoleWallStep = 0.01f;
+  public GameObject bulletHole = default;
 
   private Vector2 mouseAxis = Vector2.zero;
   private Vector2 recoil = Vector2.zero;
@@ -141,6 +143,11 @@ public class GunController : MonoBehaviour
       {
         float dmg = hit.collider.tag == "Hit/Head" ? dmgHead : dmgBody;
         hit.collider.GetComponentInParent<Enemy>().ApplyDamage(dmg);
+      }
+      else if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Environment"))
+      {
+        GameObject bulletPrefab = Instantiate(bulletHole, hit.point + (hit.normal * bulletHoleWallStep), Quaternion.LookRotation(hit.normal));
+        Destroy(bulletPrefab, 8);
       }
     }
   }
