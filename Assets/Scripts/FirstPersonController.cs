@@ -217,7 +217,7 @@ public class FirstPersonController : MonoBehaviour
 
     currentRotation.y = Mathf.Clamp(currentRotation.y, -upperLookLimit, lowerLookLimit);
 
-    transform.localRotation = Quaternion.AngleAxis(currentRotation.x , Vector3.up);
+    transform.localRotation = Quaternion.AngleAxis(currentRotation.x, Vector3.up);
     playerCamera.transform.localRotation = Quaternion.AngleAxis(-currentRotation.y, Vector3.right);
 
     // Old camera movement logic (changed because recoil)
