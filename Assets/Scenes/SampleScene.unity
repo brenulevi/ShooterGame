@@ -201,7 +201,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 61769374}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Environment
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -379,7 +379,7 @@ GameObject:
   - component: {fileID: 514975340}
   - component: {fileID: 514975339}
   - component: {fileID: 514975342}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Concrete Ground Test
   m_TagString: Footsteps/Concrete
   m_Icon: {fileID: 0}
@@ -490,7 +490,7 @@ GameObject:
   - component: {fileID: 537325038}
   - component: {fileID: 537325037}
   - component: {fileID: 537325036}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Wood Ground Test
   m_TagString: Footsteps/Wood
   m_Icon: {fileID: 0}
@@ -588,7 +588,7 @@ GameObject:
   - component: {fileID: 694236960}
   - component: {fileID: 694236959}
   - component: {fileID: 694236958}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Damage Ground Test
   m_TagString: Footsteps/Wood
   m_Icon: {fileID: 0}
@@ -928,7 +928,7 @@ GameObject:
   - component: {fileID: 876582085}
   - component: {fileID: 876582084}
   - component: {fileID: 876582083}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Grass Ground Test
   m_TagString: Footsteps/Grass
   m_Icon: {fileID: 0}
@@ -1086,7 +1086,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 695
+    m_Bits: 2743
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -1142,7 +1142,7 @@ GameObject:
   - component: {fileID: 1109535169}
   - component: {fileID: 1109535168}
   - component: {fileID: 1109535167}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Metal Ground Test
   m_TagString: Footsteps/Metal
   m_Icon: {fileID: 0}
@@ -1968,7 +1968,7 @@ GameObject:
   - component: {fileID: 1897823502}
   - component: {fileID: 1897823501}
   - component: {fileID: 1897823500}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Interactable Cube Test
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2077,7 +2077,7 @@ GameObject:
   - component: {fileID: 2015431322}
   - component: {fileID: 2015431321}
   - component: {fileID: 2015431320}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2175,7 +2175,7 @@ GameObject:
   - component: {fileID: 2129970830}
   - component: {fileID: 2129970829}
   - component: {fileID: 2129970833}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Concrete Ground Test
   m_TagString: Footsteps/Concrete
   m_Icon: {fileID: 0}
@@ -16200,6 +16200,8 @@ MonoBehaviour:
   CanShoot: 1
   fireKey: 323
   reloadKey: 114
+  dmgHead: 75
+  dmgBody: 36
   fireRate: 0.1
   clipSize: 30
   reservedAmmoCapacity: 90
